@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Counter</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        .file-input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="file"] { display: block; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: calc(100% - 20px); }
+        button {
+            background-color: #007bff; color: white; padding: 10px 15px; border: none;
+            border-radius: 4px; cursor: pointer; font-size: 16px; display: block; width: 100%;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .results {
+            margin-top: 20px; padding: 15px; background-color: #e9ecef;
+            border-radius: 4px; cursor: pointer; /* Make the whole results div clickable */
+        }
+        .results:hover { background-color: #dde2e6; } /* Optional hover for the whole div */
+        .results p { margin: 8px 0; font-size: 1em; }
+        #status { margin-top: 15px; font-style: italic; color: #777; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>File Email Counter</h1>
+
+        <div class="file-input-group">
+            <label for="jsonFile">Select JSON File:</label>
+            <input type="file" id="jsonFile" accept=".json">
+        </div>
+
+        <div class="file-input-group">
+            <label for="xlsxFile">Select XLSX File:</label>
+            <input type="file" id="xlsxFile" accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+        </div>
+
+        <button id="processButton">Process Files</button>
+
+        <!-- The entire results div is now the copy target -->
+        <div class="results" id="resultsContainer">
+            <h2>Results:</h2>
+            <p id="jsonResult">Import: N/A</p>
+            <p id="xlsxResult">Sent: N/A</p>
+        </div>
+        <p id="status">Ready. Select files and click process.</p>
+    </div>
+
+    <!-- SheetJS Library (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Your custom script -->
+    <script src="app.js"></script>
+</body>
+</html>
