@@ -1,13 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     const jsonFileInput = document.getElementById('jsonFile');
     const xlsxFileInput = document.getElementById('xlsxFile');
+    const customTestEmailsInput = document.getElementById('customTestEmails'); // New input
     const processButton = document.getElementById('processButton');
     const jsonResultP = document.getElementById('jsonResult');
     const xlsxResultP = document.getElementById('xlsxResult');
     const statusP = document.getElementById('status');
-    const resultsContainer = document.getElementById('resultsContainer'); // Get the results div
+    const resultsContainer = document.getElementById('resultsContainer');
 
-    const TEST_EMAILS_CONFIG = [
+    // Base list of test emails (normalized to lowercase)
+    const BASE_TEST_EMAILS_CONFIG = [
         "long.toquoc@gmail.com",
         "ntychi.ityu@gmail.com",
         "ching.test.email@gmail.com",
@@ -17,11 +19,28 @@ document.addEventListener('DOMContentLoaded', () => {
     processButton.addEventListener('click', async () => {
         processButton.disabled = true;
         statusP.textContent = 'Processing...';
-        jsonResultP.textContent = '- Import: N/A';
-        xlsxResultP.textContent = '- Sent: N/A';
+        jsonResultP.textContent = 'Import: N/A';
+        xlsxResultP.textContent = 'Sent: N/A';
 
         const jsonFile = jsonFileInput.files[0];
         const xlsxFile = xlsxFileInput.files[0];
+        const customEmailsString = customTestEmailsInput.value;
+
+        // --- Combine base test emails with user-provided ones ---
+        let currentRunTestEmails = [...BASE_TEST_EMAILS_CONFIG];
+        if (customEmailsString.trim() !== "") {
+            const userEnteredEmails = customEmailsString
+                .split(/[\s,;\n]+/) // Split by comma, semicolon, newline, or spaces
+                .map(email => email.trim().toLowerCase())
+                .filter(email => email !== "" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)); // Basic email format check
+
+            userEnteredEmails.forEach(email => {
+                if (!currentRunTestEmails.includes(email)) {
+                    currentRunTestEmails.push(email);
+                }
+            });
+        }
+        // --- End of test email combination ---
 
         if (!jsonFile && !xlsxFile) {
             statusP.textContent = 'Please select at least one file.';
@@ -40,16 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const parsedJson = JSON.parse(jsonData);
                 const count = countEmailKeysInJson(parsedJson);
                 importedEmailsCount = count;
-                jsonResultP.textContent = `- Import: ${count}`;
+                jsonResultP.textContent = `Import: ${count}`;
                 statusP.textContent = 'JSON processing complete.';
             } catch (error) {
                 console.error("Error processing JSON:", error);
-                jsonResultP.textContent = '- Import: Error';
+                jsonResultP.textContent = 'Import: Error';
                 statusP.textContent = `Error processing JSON: ${error.message}`;
                 importedEmailsCount = null;
             }
         } else {
-             jsonResultP.textContent = '- Import: N/A (No file selected)';
+             jsonResultP.textContent = 'Import: N/A (No file selected)';
         }
 
         if (xlsxFile) {
@@ -63,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
 
                 if (data.length === 0) {
-                    xlsxResultP.textContent = '- Sent: 0 (Sheet is empty)';
+                    xlsxResultP.textContent = 'Sent: 0 (Sheet is empty)';
                     totalSentEmailsXLSX = 0;
                 } else {
                     const headerRow = data[0];
@@ -76,12 +95,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (emailColumnIndex === -1) {
-                        xlsxResultP.textContent = '- Sent: 0 ("email" column not found)';
+                        xlsxResultP.textContent = 'Sent: 0 ("email" column not found)';
                         totalSentEmailsXLSX = 0;
                     } else {
                         let currentXlsxEmailCount = 0;
                         let testEmailOccurrences = {};
-                        TEST_EMAILS_CONFIG.forEach(email => testEmailOccurrences[email] = 0);
+                        // Initialize occurrences for all test emails in this run
+                        currentRunTestEmails.forEach(email => testEmailOccurrences[email] = 0);
 
                         for (let i = 1; i < data.length; i++) {
                             const row = data[i];
@@ -90,7 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if (cellValue !== "") {
                                     currentXlsxEmailCount++;
                                     const lowerCellValue = cellValue.toLowerCase();
-                                    if (TEST_EMAILS_CONFIG.includes(lowerCellValue)) {
+                                    // Check against the combined list for this run
+                                    if (currentRunTestEmails.includes(lowerCellValue)) {
                                         testEmailOccurrences[lowerCellValue]++;
                                     }
                                 }
@@ -100,14 +121,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         let testEmailsDetailsParts = [];
                         totalTestEmailsFoundInXLSX = 0;
-                        TEST_EMAILS_CONFIG.forEach(testEmail => {
+                        // Iterate through all potential test emails for this run for the "Except for" string
+                        currentRunTestEmails.forEach(testEmail => {
                             if (testEmailOccurrences[testEmail] > 0) {
                                 testEmailsDetailsParts.push(`${testEmail} (${testEmailOccurrences[testEmail]})`);
                                 totalTestEmailsFoundInXLSX += testEmailOccurrences[testEmail];
                             }
                         });
 
-                        let xlsxDisplayText = `- Sent: ${totalSentEmailsXLSX}`;
+                        let xlsxDisplayText = `Sent: ${totalSentEmailsXLSX}`;
                         if (testEmailsDetailsParts.length > 0) {
                             xlsxDisplayText += ` (Except for ${testEmailsDetailsParts.join(', ')})`;
                         }
@@ -117,11 +139,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusP.textContent = 'XLSX processing complete.';
             } catch (error) {
                 console.error("Error processing XLSX:", error);
-                xlsxResultP.textContent = '- Sent: Error';
+                xlsxResultP.textContent = 'Sent: Error';
                 statusP.textContent = `Error processing XLSX: ${error.message}`;
             }
         } else {
-            xlsxResultP.textContent = '- Sent: N/A (No file selected)';
+            xlsxResultP.textContent = 'Sent: N/A (No file selected)';
         }
 
         if (xlsxFile && !xlsxResultP.textContent.includes('Error') && !xlsxResultP.textContent.includes('N/A')) {
@@ -191,7 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return count;
     }
 
-    // --- Click-to-Copy Functionality for the ENTIRE results block ---
     function copyResultsToClipboard() {
         const jsonText = jsonResultP.textContent;
         const xlsxText = xlsxResultP.textContent;
@@ -201,34 +222,26 @@ document.addEventListener('DOMContentLoaded', () => {
             statusP.textContent = "Nothing valid to copy.";
             return;
         }
-
-        // Combine the two lines with a newline character
         const combinedText = `${jsonText}\n${xlsxText}`;
-
         navigator.clipboard.writeText(combinedText).then(() => {
             const originalStatus = statusP.textContent;
-            const originalBgColor = resultsContainer.style.backgroundColor;
-            resultsContainer.style.backgroundColor = '#d4edda'; // Light green feedback
+            resultsContainer.style.backgroundColor = '#d4edda';
             statusP.textContent = `Copied all results!`;
             setTimeout(() => {
                 statusP.textContent = originalStatus;
-                resultsContainer.style.backgroundColor = ''; // Reset to default/CSS defined
+                resultsContainer.style.backgroundColor = '';
             }, 2500);
         }).catch(err => {
             console.error('Failed to copy with navigator.clipboard: ', err);
             try {
                 const textArea = document.createElement("textarea");
                 textArea.value = combinedText;
-                textArea.style.position = "fixed";
-                textArea.style.opacity = "0";
+                textArea.style.position = "fixed"; textArea.style.opacity = "0";
                 document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
+                textArea.focus(); textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-
                 const originalStatus = statusP.textContent;
-                const originalBgColor = resultsContainer.style.backgroundColor;
                 resultsContainer.style.backgroundColor = '#d4edda';
                 statusP.textContent = `Copied all results (fallback)!`;
                 setTimeout(() => {
@@ -241,8 +254,5 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // Add event listener to the results container div
     resultsContainer.addEventListener('click', copyResultsToClipboard);
-
 });
