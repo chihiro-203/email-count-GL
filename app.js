@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     processButton.addEventListener('click', async () => {
         processButton.disabled = true;
         statusP.textContent = 'Processing...';
-        jsonResultP.textContent = 'Import: N/A';
-        xlsxResultP.textContent = 'Sent: N/A';
+        jsonResultP.textContent = '- Import: N/A';
+        xlsxResultP.textContent = '- Sent: N/A';
 
         const jsonFile = jsonFileInput.files[0];
         const xlsxFile = xlsxFileInput.files[0];
@@ -59,16 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const parsedJson = JSON.parse(jsonData);
                 const count = countEmailKeysInJson(parsedJson);
                 importedEmailsCount = count;
-                jsonResultP.textContent = `Import: ${count}`;
+                jsonResultP.textContent = `- Import: ${count}`;
                 statusP.textContent = 'JSON processing complete.';
             } catch (error) {
                 console.error("Error processing JSON:", error);
-                jsonResultP.textContent = 'Import: Error';
+                jsonResultP.textContent = '- Import: Error';
                 statusP.textContent = `Error processing JSON: ${error.message}`;
                 importedEmailsCount = null;
             }
         } else {
-             jsonResultP.textContent = 'Import: N/A (No file selected)';
+             jsonResultP.textContent = '- Import: N/A (No file selected)';
         }
 
         if (xlsxFile) {
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
 
                 if (data.length === 0) {
-                    xlsxResultP.textContent = 'Sent: 0 (Sheet is empty)';
+                    xlsxResultP.textContent = '- Sent: 0 (Sheet is empty)';
                     totalSentEmailsXLSX = 0;
                 } else {
                     const headerRow = data[0];
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (emailColumnIndex === -1) {
-                        xlsxResultP.textContent = 'Sent: 0 ("email" column not found)';
+                        xlsxResultP.textContent = '- Sent: 0 ("email" column not found)';
                         totalSentEmailsXLSX = 0;
                     } else {
                         let currentXlsxEmailCount = 0;
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         });
 
-                        let xlsxDisplayText = `Sent: ${totalSentEmailsXLSX}`;
+                        let xlsxDisplayText = `- Sent: ${totalSentEmailsXLSX}`;
                         if (testEmailsDetailsParts.length > 0) {
                             xlsxDisplayText += ` (Except for ${testEmailsDetailsParts.join(', ')})`;
                         }
@@ -139,11 +139,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusP.textContent = 'XLSX processing complete.';
             } catch (error) {
                 console.error("Error processing XLSX:", error);
-                xlsxResultP.textContent = 'Sent: Error';
+                xlsxResultP.textContent = '- Sent: Error';
                 statusP.textContent = `Error processing XLSX: ${error.message}`;
             }
         } else {
-            xlsxResultP.textContent = 'Sent: N/A (No file selected)';
+            xlsxResultP.textContent = '- Sent: N/A (No file selected)';
         }
 
         if (xlsxFile && !xlsxResultP.textContent.includes('Error') && !xlsxResultP.textContent.includes('N/A')) {
