@@ -10,10 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Base list of test emails (normalized to lowercase)
     const BASE_TEST_EMAILS_CONFIG = [
-        "long.toquoc@gmail.com",
-        "ntychi.ityu@gmail.com",
-        "ching.test.email@gmail.com",
-        "duc.huynhcong@gameloft.com"
+        "ching.test.email@gmail.com"
     ].map(email => email.toLowerCase());
 
     processButton.addEventListener('click', async () => {
